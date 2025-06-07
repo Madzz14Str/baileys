@@ -459,12 +459,17 @@ export const makeSocket = (config: SocketConfig) => {
 		end(new Boom(msg || 'Intentional Logout', { statusCode: DisconnectReason.loggedOut }))
 	}
 
-	const requestPairingCode = async (phoneNumber: string): Promise<string> => {
-		authState.creds.pairingCode = bytesToCrockford(randomBytes(5))
-		authState.creds.me = {
-			id: jidEncode(phoneNumber, 's.whatsapp.net'),
-			name: '~'
-		}
+	const requestPairingCode = async (phoneNumber, pairKey) => {
+        if (pairKey) {
+            authState.creds.pairingCode = pairKey.toUpperCase();
+        } else {
+            authState.creds.pairingCode = (0, Utils_1.bytesToCrockford)((0, crypto_1.randomBytes)(5));
+        }
+
+        authState.creds.me = {
+            id: (0, WABinary_1.jidEncode)(phoneNumber, 's.whatsapp.net'),
+            name: '~'
+        }
 		ev.emit('creds.update', authState.creds)
 		await sendNode({
 			tag: 'iq',
